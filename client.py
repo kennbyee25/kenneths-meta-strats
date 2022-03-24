@@ -3,7 +3,7 @@ import random
 import io
 import urllib3
 import json
-from utils import display_recommendation, zipf_algo, random_build
+from utils import display_recommendation, zipf_algo, random_build, historical_build
 from config import *
 
 
@@ -56,7 +56,7 @@ class Client(discord.Client):
                 champ = rec["champion"]
                 build = rec["build"]  #generate_build_recommendation(summ, champ)
                 flavor_index = random.randrange(0, len(flavor_verbs))
-            str_msg = f"{summ} will {flavor_verbs[flavor_index]} while playing {champ}"
+            str_msg = f"{rec['name']} will {flavor_verbs[flavor_index]} while playing {champ}"
             if self.send_png:
                 with io.BytesIO() as output:
                     output = display_recommendation(champ, build, output)
@@ -71,7 +71,7 @@ class Client(discord.Client):
         print("Logged in as", self.user)
 
     # TODO: add docstring
-    def generate_recommendation(self, name="", region="na1", champ_algo="zipf", build_algo="rng"):
+    def generate_recommendation(self, name="", region="na1", champ_algo="zipf", build_algo="hist"):
         rec = {}
 
         champ_algo_switch = {
@@ -80,6 +80,7 @@ class Client(discord.Client):
 
         build_algo_switch = {
             "rng": random_build,
+            "hist": historical_build,
         }
 
         # get summoner
@@ -94,13 +95,14 @@ class Client(discord.Client):
                 # TODO raise exception
             summ_data = json.loads(r.data.decode('utf-8'))
             summ_id = summ_data['id']
+            rec["name"] = summ_data['name']
             print(name, summ_data)
 
         champ_id = champ_algo_switch[champ_algo](self.http2, summ_id)
-        build = build_algo_switch[build_algo]()
+        build = build_algo_switch[build_algo](self.http2, summ_data['puuid'])
         rec["champion"] = self.get_champion_by_id(champ_id)
-        print(champ_id)
-        print(build)
+        # print(champ_id)
+        # print(build)
         rec["build"] = build
         return rec
 
