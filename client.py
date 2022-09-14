@@ -54,7 +54,7 @@ class Client(discord.Client):
                 summ = summ[1:]
                 rec = self.generate_recommendation(summ)
                 champ = rec["champion"]
-                build = rec["build"]  #generate_build_recommendation(summ, champ)
+                build = rec["build"]  # generate_build_recommendation(summ, champ)
                 flavor_index = random.randrange(0, len(flavor_verbs))
             str_msg = f"{rec['name']} will {flavor_verbs[flavor_index]} while playing {champ}"
             if self.send_png:
